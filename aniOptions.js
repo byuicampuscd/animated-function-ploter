@@ -5,7 +5,7 @@ var aniOptions = {
          "y": 5,
          "id": 0,
          "changeEqu": "3(1)+2",
-         "updatePoint": false,
+         "updatePoint": true,
          "element": {}
       },
       {
@@ -21,11 +21,11 @@ var aniOptions = {
          "y": 11,
          "id": 2,
          "changeEqu": "3(3)+2",
-         "updatePoint": false,
+         "updatePoint": true,
          "element": {}
       }
    ],
-   "currentRound": 1,
+   "currentRound": 0,
    "graphOpt": {
       "animateHide": false,
       "graphHide": false,
@@ -78,7 +78,7 @@ var aniOptions2 = {
          "element": {}
       }
    ],
-   "currentRound": 1,
+   "currentRound": 0,
    "graphOpt": {
       "animateHide": false,
       "graphHide": false,
