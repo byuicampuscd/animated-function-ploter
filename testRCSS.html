@@ -17,27 +17,42 @@
    </style>
    <script src="node_modules/d3/d3.min.js"></script>
    <script src="node_modules/function-plot/dist/function-plot.js"></script>
+
+   <script src="aniOptions.js"></script>
    <script src="addPoint.js"></script>
+   <script src="plotGraph.js"></script>
 </head>
 
 <body>
    <div id="place"></div>
    <div id="place2"></div>
+
    <script>
-      var graphPlot = functionPlot({
-         target: '#place',
-         id: 'abc123',
-         data: [{
-               fn: 'x'
-            }
-            /*, { points: [ [0, 0] ], fnType: 'points', graphType: 'scatter' }*/
-         ]
-      });
-      addPoint(2, graphPlot);
-      for (var i = -2.5; i <= 2.5; i += 0.5)
-         addPoint(i, graphPlot);
+      plotGraph.setup(aniOptions, "#place");
+      window.setTimeout(function() {
+         console.log('next');
+         plotGraph.update(aniOptions2);
+      }, 1500);
 
    </script>
+   <!--<script>
+   var graphPlot = functionPlot({
+      target: '#place',
+      id: 'abc123',
+      data: [{
+         fn: 'x'
+      }, {
+         points: [
+            [0, 0]
+         ],
+         fnType: 'points',
+         graphType: 'scatter'
+      }]
+   });
+   addPoint(2, graphPlot);
+   for (var i = -2.5; i <= 2.5; i += 0.5)
+      addPoint(i, graphPlot);
+</script>-->
 </body>
 
 </html>
