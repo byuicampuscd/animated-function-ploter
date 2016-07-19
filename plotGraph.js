@@ -3,115 +3,131 @@
 var plotGraph = (function () {
    "use strict";
    var graphLocationSelector,
+      dotLocation,
       currentEquation,
       funPlot,
+      xScale,
+      yScale,
       freeId = 0;
 
-   function updateTextX(d) {
-      var zero = (0).toFixed(2);
+   //these two functions make the factory function that is used in the animations for the point labels 
+   function updateTextX(currentPoint) {
+      return function (d) {
+         var zero = (0).toFixed(2);
 
-      return function (t) {
-         var location = d.x * t;
-         this.textContent = "( " + location.toFixed(2) + ", " + zero + ")";
+         return function (t) {
+            var location = currentPoint.x * t;
+            this.textContent = "( " + location.toFixed(2) + ", " + zero + ")";
+         };
       };
    }
 
-   function updateTextY(d) {
-      var xRounded = d.x.toFixed(2),
-         yVal = d.y;
+   function updateTextY(currentPoint) {
+      return function () {
+         var xRounded = currentPoint.x.toFixed(2),
+            yVal = currentPoint.y;
 
-      return function (t) {
-         this.textContent = "( " + xRounded + ", " + (yVal * t).toFixed(2) + ")";
+         return function (t) {
+            this.textContent = "( " + xRounded + ", " + (yVal * t).toFixed(2) + ")";
+         };
       };
    }
 
-   function filterAndUpdateIds(aniOptions) {
-
-      return aniOptions.datapoints.reduce(function (newArray, dataPoint, index) {
-         //give it a fresh id if it's the one being animated and it needs to be updated
-         if (index === aniOptions.currentRound && dataPoint.updatePoint) {
-            dataPoint.id = freeId;
-         }
-         freeId += 1;
-         //keep it if we like it
-         if (index <= aniOptions.currentRound || !dataPoint.updatePoint) {
-            newArray.push(dataPoint);
-         }
-
-         return newArray;
-      }, []);
+   function makePointId(numIn) {
+      return 'graphPoint' + numIn;
    }
 
-   function update(aniOptions, callback) {
-      var dotLocation = graphLocationSelector + ' .content',
-         xScale = funPlot.meta.xScale,
-         yScale = funPlot.meta.yScale,
-         filteredDataPoints = filterAndUpdateIds(aniOptions),
-
-         points = d3.select(dotLocation).selectAll(".point").data(filteredDataPoints, function (d) {
-            return d.id;
-         }),
-         enterG,
-         transition;
-      console.log(JSON.stringify(filteredDataPoints, null, ' '));
-
-      //take care of the exit
-      points.exit().remove();
-
-      //Enter
-      enterG = points.enter().append('g')
+   function makePointGroup(currentPoint) {
+      var pointGroup = d3.selectAll(dotLocation).append('g')
          .attr('class', 'point')
-         .attr('transform', 'translate(' + xScale(0) + ' ' + yScale(0) + ')');
+         .attr('id', makePointId(currentPoint.id));
 
-
-      //add and set up circle
-      enterG.append('circle')
+      //add the circle
+      pointGroup.append('circle')
          .attr('r', 4)
          .attr('cx', 0)
          .attr('cy', 0);
 
-      //set up and place label
-      enterG.append('text')
+      //add the label
+      pointGroup.append('text')
          .text('(0, 0)')
          .attr('x', 5)
          .attr('y', 15);
+      //move it to (0,0)
+      pointGroup.attr('transform', 'translate(' + xScale(0) + ' ' + yScale(0) + ')');
+      return pointGroup;
+   }
 
-      //First transition - move the group in the X
-      transition = enterG
-         .transition()
-         .duration(1500)
-         .ease('cubic-out')
-         .attr('transform', function (d) {
-            return 'translate(' + xScale(d.x) + ' ' + yScale(0) + ')';
-         });
-      //sub transition - update the label
-      transition.select('text').tween('text', updateTextX);
+   function update(aniOptions, callback) {
+      var currentPoint = aniOptions.datapoints[aniOptions.currentRound],
+         lineIsPlotted = document.querySelectorAll(dotLocation + ' .graph .line').length > 0,
+         pointGroup,
+         transition;
 
-      //Second transition - move the group in the Y
-      //sub transition - update the label
-      transition.transition()
-         .duration(1500)
-         .ease('cubic-out')
-         .attr('transform',
-            function (d) {
-               return 'translate(' + xScale(d.x) + ' ' + yScale(d.y) + ')';
-            })
-         .each('end', function () {
+      //clear any points that will get updated
+      aniOptions.datapoints.forEach(function (point) {
+         if (point.updatePoint) {
+            d3.select('#' + makePointId(point.id)).remove();
+         }
+      });
+
+      //check if we need to hide or show the plotline
+      if (aniOptions.graphOpt.graphHide) {
+         d3.select(dotLocation + ' .graph .line').attr('display', 'none');
+      } else {
+         d3.select(dotLocation + ' .graph .line').attr('display', 'inline');
+      }
+
+      //does the currentRound need to be updateded?
+      if (!currentPoint.updatePoint) {
+         //nothitng to see here just keep on moving
+         callback(aniOptions);
+      } else {
+         //draw point 
+         pointGroup = makePointGroup(currentPoint);
+
+         //is animation on?
+         if (aniOptions.graphOpt.animateHide) {
+            //move it into place without animation
+            pointGroup.attr('transform', 'translate(' + xScale(currentPoint.x) + ' ' + yScale(currentPoint.y) + ')');
+            //update the lable
+            pointGroup.select('text').text('(' + currentPoint.x + ', ' + currentPoint.y + ')');
+            //call callback
             callback(aniOptions);
-         })
-         .select('text').tween('text', updateTextY);
 
+         } else {
+            //draw point with animaion
+            //First transition - move the group in the X
+            transition = pointGroup
+               .transition()
+               .duration(1500)
+               .ease('cubic-out')
+               .attr('transform', 'translate(' + xScale(currentPoint.x) + ' ' + yScale(0) + ')');
+            //sub transition - update the label
+            transition.select('text').tween('text', updateTextX(currentPoint));
 
-
-
+            //Second transition - move the group in the Y
+            //sub transition - update the label
+            transition.transition()
+               .duration(1500)
+               .ease('cubic-out')
+               .attr('transform', 'translate(' + xScale(currentPoint.x) + ' ' + yScale(currentPoint.y) + ')')
+               .each('end', function () {
+                  callback(aniOptions);
+               })
+               .select('text').tween('text', updateTextY(currentPoint));
+         }
+      }
    }
 
    function setup(aniOptions, selector) {
-
       //sugar
       var optsIn = aniOptions.graphOpt,
          graphOptions = {
             target: selector,
+            data: [{
+               fn: optsIn.equation
+            }],
             xAxis: {
                domain: [optsIn.view.x.min, optsIn.view.x.max]
             },
@@ -120,22 +136,18 @@ var plotGraph = (function () {
             }
          };
 
-      if (!optsIn.graphHide) {
-         graphOptions.data = [{
-            fn: optsIn.equation
-         }];
-      }
-
       //save some things for later
       graphLocationSelector = selector;
+      dotLocation = graphLocationSelector + ' .content';
       currentEquation = optsIn.equation;
 
-      //make the plot
+      //make the plot and scales
       funPlot = functionPlot(graphOptions);
+      xScale = funPlot.meta.xScale;
+      yScale = funPlot.meta.yScale;
 
-      //call update
-      //update(aniOptions);
-
+      //clean out any old points first
+      d3.selectAll(dotLocation + ' .point').remove();
    }
 
    return {

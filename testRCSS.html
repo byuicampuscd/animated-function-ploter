@@ -28,10 +28,30 @@
    <div id="place2"></div>
 
    <script>
+      function callback3(aniOptions) {
+         aniOptions.datapoints[aniOptions.currentRound].updatePoint = false;
+         aniOptions.currentRound += 1;
+         console.log('next3:', aniOptions.currentRound);
+         if (aniOptions.currentRound < aniOptions.datapoints.length) {
+            plotGraph.update(aniOptions, callback3);
+         }
+      }
       //change the middle and then rerun
       function testThree(aniOptions) {
          console.log('three');
-         return 1;
+         plotGraph.setup(aniOptions2, "#place");
+         plotGraph.update(aniOptions2, callback3);
+      }
+
+      function callback2(aniOptions) {
+         aniOptions.datapoints[aniOptions.currentRound].updatePoint = false;
+         aniOptions.currentRound += 1;
+         console.log('next2:', aniOptions.currentRound);
+         if (aniOptions.currentRound < aniOptions.datapoints.length) {
+            plotGraph.update(aniOptions, callback2);
+         } else {
+            testThree(aniOptions);
+         }
       }
       //change the middle and then rerun
       function testTwo(aniOptions) {
@@ -39,8 +59,11 @@
          aniOptions.datapoints[1].x = -1;
          aniOptions.datapoints[1].y = -1;
          aniOptions.datapoints[1].updatePoint = true;
-         aniOptions.currentRound = 1;
-         plotGraph.update(aniOptions, testThree);
+         aniOptions.datapoints[2].x = -2;
+         aniOptions.datapoints[2].y = -4;
+         aniOptions.datapoints[2].updatePoint = true;
+         aniOptions.currentRound = 0;
+         plotGraph.update(aniOptions, callback2);
       }
       //this will run one at a time till we get all three
       function callback(aniOptions) {

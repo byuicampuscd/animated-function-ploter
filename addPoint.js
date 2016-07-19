@@ -13,7 +13,7 @@ var addPoint = (function () {
 
       function updateTextX() {
          var zero = (0).toFixed(2);
-
+         console.log("this outter:", this);
          return function (t) {
             var location = xIn * t;
             this.textContent = "( " + location.toFixed(2) + ", " + zero + ")";
