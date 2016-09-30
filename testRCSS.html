@@ -53,6 +53,7 @@
             testThree(aniOptions);
          }
       }
+       
       //change the middle and then rerun
       function testTwo(aniOptions) {
          console.log('test2');
@@ -65,6 +66,7 @@
          aniOptions.currentRound = 0;
          plotGraph.update(aniOptions, callback2);
       }
+       
       //this will run one at a time till we get all three
       function callback(aniOptions) {
          aniOptions.datapoints[aniOptions.currentRound].updatePoint = false;
@@ -76,6 +78,7 @@
             testTwo(aniOptions);
          }
       }
+       
       plotGraph.setup(aniOptions, "#place");
       plotGraph.update(aniOptions, callback);
 
